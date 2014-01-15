@@ -5565,7 +5565,7 @@ parse_port_config(smartlist_t *out,
       }
     } else {
       /* Try parsing integer port before address, because, who knows?
-         "9050" might be a valid address. */
+         "9060" might be a valid address. */
       port = (int) tor_parse_long(addrport, 10, 0, 65535, &ok, NULL);
       if (ok) {
         tor_addr_parse(&addr, defaultaddr);
@@ -5851,7 +5851,7 @@ parse_ports(or_options_t *options, int validate_only,
   if (parse_port_config(ports,
              options->SocksPort_lines, options->SocksListenAddress,
              "Socks", CONN_TYPE_AP_LISTENER,
-             "127.0.0.1", 9050,
+             "127.0.0.1", 9060,
              CL_PORT_WARN_NONLOCAL|CL_PORT_ALLOW_EXTRA_LISTENADDR|
              CL_PORT_TAKES_HOSTNAMES) < 0) {
     *msg = tor_strdup("Invalid SocksPort/SocksListenAddress configuration");

@@ -1,14 +1,14 @@
 
-noinst_LIBRARIES += \
-	src/common/libor.a \
-	src/common/libor-crypto.a \
-	src/common/libor-event.a
+noinst_LTLIBRARIES += \
+	src/common/libor.la \
+	src/common/libor-crypto.la \
+	src/common/libor-event.la
 
 if UNITTESTS_ENABLED
-noinst_LIBRARIES += \
-	src/common/libor-testing.a \
-	src/common/libor-crypto-testing.a \
-	src/common/libor-event-testing.a
+noinst_LTLIBRARIES += \
+	src/common/libor-testing.la \
+	src/common/libor-crypto-testing.la \
+	src/common/libor-event-testing.la
 endif
 
 EXTRA_DIST+= \
@@ -24,21 +24,21 @@ else
 libor_extra_source=
 endif
 
-src_common_libcurve25519_donna_a_CFLAGS=
+src_common_libcurve25519_donna_la_CFLAGS=
 
 if BUILD_CURVE25519_DONNA
-src_common_libcurve25519_donna_a_SOURCES=\
+src_common_libcurve25519_donna_la_SOURCES=\
 	src/ext/curve25519_donna/curve25519-donna.c
-src_common_libcurve25519_donna_a_CFLAGS+=\
+src_common_libcurve25519_donna_la_CFLAGS+=\
 	@F_OMIT_FRAME_POINTER@
-noinst_LIBRARIES+=src/common/libcurve25519_donna.a
-LIBDONNA=src/common/libcurve25519_donna.a
+noinst_LTLIBRARIES+=src/common/libcurve25519_donna.la
+LIBDONNA=src/common/libcurve25519_donna.la
 else
 if BUILD_CURVE25519_DONNA_C64
-src_common_libcurve25519_donna_a_SOURCES=\
+src_common_libcurve25519_donna_la_SOURCES=\
 	src/ext/curve25519_donna/curve25519-donna-c64.c
-noinst_LIBRARIES+=src/common/libcurve25519_donna.a
-LIBDONNA=src/common/libcurve25519_donna.a
+noinst_LTLIBRARIES+=src/common/libcurve25519_donna.la
+LIBDONNA=src/common/libcurve25519_donna.la
 else
 LIBDONNA=
 endif
@@ -73,20 +73,20 @@ LIBOR_CRYPTO_A_SOURCES = \
 
 LIBOR_EVENT_A_SOURCES = src/common/compat_libevent.c
 
-src_common_libor_a_SOURCES = $(LIBOR_A_SOURCES)
-src_common_libor_crypto_a_SOURCES = $(LIBOR_CRYPTO_A_SOURCES)
-src_common_libor_event_a_SOURCES = $(LIBOR_EVENT_A_SOURCES)
+src_common_libor_la_SOURCES = $(LIBOR_A_SOURCES)
+src_common_libor_crypto_la_SOURCES = $(LIBOR_CRYPTO_A_SOURCES)
+src_common_libor_event_la_SOURCES = $(LIBOR_EVENT_A_SOURCES)
 
-src_common_libor_testing_a_SOURCES = $(LIBOR_A_SOURCES)
-src_common_libor_crypto_testing_a_SOURCES = $(LIBOR_CRYPTO_A_SOURCES)
-src_common_libor_event_testing_a_SOURCES = $(LIBOR_EVENT_A_SOURCES)
+src_common_libor_testing_la_SOURCES = $(LIBOR_A_SOURCES)
+src_common_libor_crypto_testing_la_SOURCES = $(LIBOR_CRYPTO_A_SOURCES)
+src_common_libor_event_testing_la_SOURCES = $(LIBOR_EVENT_A_SOURCES)
 
-src_common_libor_testing_a_CPPFLAGS = -DTOR_UNIT_TESTS $(AM_CPPFLAGS)
-src_common_libor_crypto_testing_a_CPPFLAGS = -DTOR_UNIT_TESTS $(AM_CPPFLAGS)
-src_common_libor_event_testing_a_CPPFLAGS = -DTOR_UNIT_TESTS $(AM_CPPFLAGS)
-src_common_libor_testing_a_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
-src_common_libor_crypto_testing_a_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
-src_common_libor_event_testing_a_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
+src_common_libor_testing_la_CPPFLAGS = -DTOR_UNIT_TESTS $(AM_CPPFLAGS)
+src_common_libor_crypto_testing_la_CPPFLAGS = -DTOR_UNIT_TESTS $(AM_CPPFLAGS)
+src_common_libor_event_testing_la_CPPFLAGS = -DTOR_UNIT_TESTS $(AM_CPPFLAGS)
+src_common_libor_testing_la_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
+src_common_libor_crypto_testing_la_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
+src_common_libor_event_testing_la_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
 
 
 COMMONHEADERS = \
@@ -115,11 +115,11 @@ noinst_HEADERS+= $(COMMONHEADERS)
 
 DISTCLEANFILES+= src/common/common_sha1.i
 
-src/common/common_sha1.i: $(libor_SOURCES) $(libor_crypto_a_SOURCES) $(COMMONHEADERS)
+src/common/common_sha1.i: $(libor_SOURCES) $(libor_crypto_la_SOURCES) $(COMMONHEADERS)
 	$(AM_V_GEN)if test "@SHA1SUM@" != none; then \
-	  (cd "$(srcdir)" && "@SHA1SUM@" $(src_common_libor_SOURCES) $(src_common_libor_crypto_a_SOURCES) $(COMMONHEADERS)) | "@SED@" -n 's/^\(.*\)$$/"\1\\n"/p' > $@; \
+	  (cd "$(srcdir)" && "@SHA1SUM@" $(src_common_libor_SOURCES) $(src_common_libor_crypto_la_SOURCES) $(COMMONHEADERS)) | "@SED@" -n 's/^\(.*\)$$/"\1\\n"/p' > $@; \
 	elif test "@OPENSSL@" != none; then \
-	  (cd "$(srcdir)" && "@OPENSSL@" sha1 $(src_common_libor_SOURCES) $(src_Common_libor_crypto_a_SOURCES) $(COMMONHEADERS)) | "@SED@" -n 's/SHA1(\(.*\))= \(.*\)/"\2  \1\\n"/p' > $@; \
+	  (cd "$(srcdir)" && "@OPENSSL@" sha1 $(src_common_libor_SOURCES) $(src_Common_libor_crypto_la_SOURCES) $(COMMONHEADERS)) | "@SED@" -n 's/SHA1(\(.*\))= \(.*\)/"\2  \1\\n"/p' > $@; \
 	else \
 	  rm $@; \
 	  touch $@; \

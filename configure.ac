@@ -182,9 +182,14 @@ if test x$enable_tool_name_check != xno; then
 fi
 
 AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
+
+LT_INIT
+BOOST_REQUIRE
+BOOST_FILESYSTEM
 
 dnl autoconf 2.59 appears not to support AC_PROG_SED
 AC_CHECK_PROG([SED],[sed],[sed],[/bin/false])

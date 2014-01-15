@@ -1,9 +1,9 @@
 bin_PROGRAMS+= src/or/tor
-noinst_LIBRARIES += \
-	src/or/libtor.a
+noinst_LTLIBRARIES += \
+	src/or/libtor.la
 if UNITTESTS_ENABLED
-noinst_LIBRARIES += \
-	src/or/libtor-testing.a
+noinst_LTLIBRARIES += \
+	src/or/libtor-testing.la
 endif
 if COVERAGE_ENABLED
 noinst_PROGRAMS+= src/or/tor-cov
@@ -82,16 +82,17 @@ LIBTOR_A_SOURCES = \
 	src/or/routerset.c				\
 	src/or/statefile.c				\
 	src/or/status.c					\
+	src/or/privatecoin.cpp				\
 	$(evdns_source)					\
 	$(tor_platform_source)				\
 	$(onion_ntor_source)				\
 	src/or/config_codedigest.c
 
-src_or_libtor_a_SOURCES = $(LIBTOR_A_SOURCES)
-src_or_libtor_testing_a_SOURCES = $(LIBTOR_A_SOURCES)
+src_or_libtor_la_SOURCES = $(LIBTOR_A_SOURCES)
+src_or_libtor_testing_la_SOURCES = $(LIBTOR_A_SOURCES)
 
-#libtor_a_LIBADD = ../common/libor.a ../common/libor-crypto.a \
-#	../common/libor-event.a
+#libtor_la_LIBADD = ../common/libor.la ../common/libor-crypto.la \
+#	../common/libor-event.la
 
 
 src_or_tor_SOURCES = src/or/tor_main.c
@@ -103,8 +104,17 @@ AM_CPPFLAGS += -DSHARE_DATADIR="\"$(datadir)\"" \
         -DLOCALSTATEDIR="\"$(localstatedir)\"" \
         -DBINDIR="\"$(bindir)\""
 
-src_or_libtor_testing_a_CPPFLAGS = -DTOR_UNIT_TESTS $(AM_CPPFLAGS)
-src_or_libtor_testing_a_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
+src_or_libtor_testing_la_CPPFLAGS = -DTOR_UNIT_TESTS $(AM_CPPFLAGS)
+src_or_libtor_testing_la_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
+
+src_or_libtor_la_CPPFLAGS = $(AM_CPPFLAGS) $(BOOST_CPPFLAGS)
+src_or_libtor_la_LDFLAGS = $(BOOST_FILESYSTEM_LDFLAGS) $(BOOST_SYSTEM_LDFLAGS)
+src_or_libtor_la_LIBADD = $(BOOST_FILESYSTEM_LIBS) $(BOOST_SYSTEM_LIBS)
+
+src_or_libtor_testing_la_CPPFLAGS += $(BOOST_CPPFLAGS)
+src_or_libtor_testing_la_LDFLAGS = $(BOOST_FILESYSTEM_LDFLAGS) \
+	$(BOOST_SYSTEM_LDFLAGS)
+src_or_libtor_testing_la_LIBADD = $(BOOST_FILESYSTEM_LIBS) $(BOOST_SYSTEM_LIBS)
 
 # -L flags need to go in LDFLAGS. -l flags need to go in LDADD.
 # This seems to matter nowhere but on windows, but I assure you that it
@@ -112,9 +122,9 @@ src_or_libtor_testing_a_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
 
 
 src_or_tor_LDFLAGS = @TOR_LDFLAGS_zlib@ @TOR_LDFLAGS_openssl@ @TOR_LDFLAGS_libevent@
-src_or_tor_LDADD = src/or/libtor.a src/common/libor.a \
-	src/common/libor-crypto.a $(LIBDONNA) \
-	src/common/libor-event.a \
+src_or_tor_LDADD = src/or/libtor.la src/common/libor.la \
+	src/common/libor-crypto.la $(LIBDONNA) \
+	src/common/libor-event.la \
 	@TOR_ZLIB_LIBS@ @TOR_LIB_MATH@ @TOR_LIBEVENT_LIBS@ @TOR_OPENSSL_LIBS@ \
 	@TOR_LIB_WS32@ @TOR_LIB_GDI@ @CURVE25519_LIBS@
 
@@ -123,9 +133,9 @@ src_or_tor_cov_SOURCES = src/or/tor_main.c
 src_or_tor_cov_CPPFLAGS = -DTOR_UNIT_TESTS $(AM_CPPFLAGS)
 src_or_tor_cov_CFLAGS = $(AM_CFLAGS) $(TEST_CFLAGS)
 src_or_tor_cov_LDFLAGS = @TOR_LDFLAGS_zlib@ @TOR_LDFLAGS_openssl@ @TOR_LDFLAGS_libevent@
-src_or_tor_cov_LDADD = src/or/libtor-testing.a src/common/libor-testing.a \
-	src/common/libor-crypto-testing.a $(LIBDONNA) \
-	src/common/libor-event-testing.a \
+src_or_tor_cov_LDADD = src/or/libtor-testing.la src/common/libor-testing.la \
+	src/common/libor-crypto-testing.la $(LIBDONNA) \
+	src/common/libor-event-testing.la \
 	@TOR_ZLIB_LIBS@ @TOR_LIB_MATH@ @TOR_LIBEVENT_LIBS@ @TOR_OPENSSL_LIBS@ \
 	@TOR_LIB_WS32@ @TOR_LIB_GDI@ @CURVE25519_LIBS@
 endif
@@ -208,12 +218,12 @@ micro-revision.i: FORCE
 	  mv micro-revision.tmp micro-revision.i;		\
 	fi; true
 
-src/or/or_sha1.i: $(src_or_tor_SOURCES) $(src_or_libtor_a_SOURCES) $(ORHEADERS)
+src/or/or_sha1.i: $(src_or_tor_SOURCES) $(src_or_libtor_la_SOURCES) $(ORHEADERS)
 	$(AM_V_GEN)if test "@SHA1SUM@" != none; then \
-	  (cd "$(srcdir)" && "@SHA1SUM@" $(src_or_tor_SOURCES) $(src_or_libtor_a_SOURCES) $(ORHEADERS) ) | \
+	  (cd "$(srcdir)" && "@SHA1SUM@" $(src_or_tor_SOURCES) $(src_or_libtor_la_SOURCES) $(ORHEADERS) ) | \
 	  "@SED@" -n 's/^\(.*\)$$/"\1\\n"/p' > src/or/or_sha1.i; \
 	elif test "@OPENSSL@" != none; then \
-	  (cd "$(srcdir)" && "@OPENSSL@" sha1 $(src_or_tor_SOURCES) $(src_or_libtor_a_SOURCES) $(ORHEADERS)) | \
+	  (cd "$(srcdir)" && "@OPENSSL@" sha1 $(src_or_tor_SOURCES) $(src_or_libtor_la_SOURCES) $(ORHEADERS)) | \
 	  "@SED@" -n 's/SHA1(\(.*\))= \(.*\)/"\2  \1\\n"/p' > src/or/or_sha1.i; \
 	else \
 	  rm src/or/or_sha1.i; \

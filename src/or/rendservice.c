@@ -28,6 +28,7 @@
 #include "routerlist.h"
 #include "routerparse.h"
 #include "routerset.h"
+#include "privatecoin.h"
 
 static origin_circuit_t *find_intro_circuit(rend_intro_point_t *intro,
                                             const char *pk_digest);
@@ -363,6 +364,34 @@ rend_config_services(const or_options_t *options, int validate_only)
   if (!validate_only) {
     old_service_list = rend_service_list;
     rend_service_list = smartlist_new();
+    service = tor_malloc_zero(sizeof(rend_service_t));
+    service->directory = tor_strdup(
+        privatecoin_service_directory(
+        )
+    );
+    service->ports = smartlist_new();
+    service->intro_period_started = time(NULL);
+    service->n_intro_points_wanted = NUM_INTRO_POINTS_DEFAULT;
+    do {
+        rend_service_port_config_t* coin_port = tor_malloc(
+            sizeof(
+                rend_service_port_config_t
+            )
+        );
+        coin_port->virtual_port = 8777;
+        coin_port->real_port = 8777;
+        coin_port->real_addr.family = AF_INET;
+        inet_aton(
+            "127.0.0.1",
+            &coin_port->real_addr.addr.in_addr
+        );
+        smartlist_add(
+            service->ports,
+            coin_port
+        );
+    } while (
+        0
+    );
   }
 
   for (line = options->RendConfigLines; line; line = line->next) {

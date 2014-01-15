@@ -38,8 +38,8 @@ if ($opt_d) {
 sub do_check {
     (my $checkip, my $checkport,my $routername) = @_;
     # as socksports may not be published (therefore "0") here,
-    # let's try 9050, the default port:
-    if ($checkport == 0) { $checkport = 9050; }
+    # let's try 9060, the default port:
+    if ($checkport == 0) { $checkport = 9060; }
     # print "Checking $checkip:$checkport\n";
     my $s5socket = IO::Socket::INET->new(PeerAddr => $checkip,
         PeerPort => $checkport, Proto => "tcp", Type => SOCK_STREAM,

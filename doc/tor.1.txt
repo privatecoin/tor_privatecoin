@@ -934,7 +934,7 @@ The following options are useful only for clients (that is, if
     applications. Set this to 0 if you don't want to allow application
     connections via SOCKS. Set it to "auto" to have Tor pick a port for
     you. This directive can be specified multiple times to bind
-    to multiple addresses/ports. (Default: 9050) +
+    to multiple addresses/ports. (Default: 9060) +
  +
     The _isolation flags_ arguments give Tor rules for which streams
     received on this SOCKSPort are allowed to share circuits with one
