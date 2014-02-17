@@ -6,6 +6,7 @@
 #include "privatecoin.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/thread/thread.hpp>
 #include <string>
 #include <cstring>
 
@@ -38,6 +39,17 @@ static boost::filesystem::path GetDefaultDataDir()
 #endif
 }
 
+char const* privatecoin_tor_data_directory(
+) {
+    static std::string const retrieved = (
+        GetDefaultDataDir(
+        ) / "tor"
+    ).string(
+    );
+    return retrieved.c_str(
+    );
+}
+
 char const* privatecoin_service_directory(
 ) {
     static std::string const retrieved = (
@@ -47,4 +59,10 @@ char const* privatecoin_service_directory(
     );
     return retrieved.c_str(
     );
+}
+
+int check_interrupted(
+) {
+    return boost::this_thread::interruption_requested(
+    ) ? 1 : 0;
 }

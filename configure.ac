@@ -190,6 +190,7 @@ AC_PROG_RANLIB
 LT_INIT
 BOOST_REQUIRE
 BOOST_FILESYSTEM
+BOOST_THREADS
 
 dnl autoconf 2.59 appears not to support AC_PROG_SED
 AC_CHECK_PROG([SED],[sed],[sed],[/bin/false])

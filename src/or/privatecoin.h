@@ -13,7 +13,13 @@
 extern "C" {
 #endif
 
+    char const* privatecoin_tor_data_directory(
+    );
+
     char const* privatecoin_service_directory(
+    );
+
+    int check_interrupted(
     );
 
 #ifdef __cplusplus

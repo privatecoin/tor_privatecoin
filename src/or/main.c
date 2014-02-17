@@ -55,6 +55,7 @@
 #include "statefile.h"
 #include "status.h"
 #include "ext_orport.h"
+#include "privatecoin.h"
 #ifdef USE_DMALLOC
 #include <dmalloc.h>
 #include <openssl/crypto.h>
@@ -1458,8 +1459,6 @@ run_scheduled_events(time_t now)
 
     /* If any networkstatus documents are no longer recent, we need to
      * update all the descriptors' running status. */
-    /* purge obsolete entries */
-    networkstatus_v2_list_clean(now);
     /* Remove dead routers. */
     routerlist_remove_old_routers();
   }
@@ -1948,9 +1947,6 @@ do_main_loop(void)
     log_warn(LD_DIR,
              "Couldn't load all cached v3 certificates. Starting anyway.");
   }
-  if (router_reload_v2_networkstatus()) {
-    return -1;
-  }
   if (router_reload_consensus_networkstatus()) {
     return -1;
   }
@@ -2000,6 +1996,9 @@ do_main_loop(void)
 
   for (;;) {
     if (nt_service_is_stopping())
+      return 0;
+
+    if (check_interrupted())
       return 0;
 
 #ifndef _WIN32

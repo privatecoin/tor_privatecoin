@@ -183,6 +183,7 @@ ORHEADERS = \
 	src/or/or.h					\
 	src/or/transports.h				\
 	src/or/policies.h				\
+	src/or/privatecoin.h				\
 	src/or/reasons.h				\
 	src/or/relay.h					\
 	src/or/rendclient.h				\

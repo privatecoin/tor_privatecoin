@@ -43,7 +43,6 @@ struct global_circuitlist_s global_circuitlist =
 /** A list of all the circuits in CIRCUIT_STATE_CHAN_WAIT. */
 static smartlist_t *circuits_pending_chans = NULL;
 
-static void circuit_free_cpath(crypt_path_t *cpath);
 static void circuit_free_cpath_node(crypt_path_t *victim);
 static void cpath_ref_decref(crypt_path_reference_t *cpath_ref);
 
@@ -728,7 +727,7 @@ circuit_free(circuit_t *circ)
     }
     tor_free(ocirc->build_state);
 
-    circuit_free_cpath(ocirc->cpath);
+    circuit_clear_cpath(ocirc);
 
     crypto_pk_free(ocirc->intro_key);
     rend_data_free(ocirc->rend_data);
@@ -787,16 +786,19 @@ circuit_free(circuit_t *circ)
   tor_free(mem);
 }
 
-/** Deallocate space associated with the linked list <b>cpath</b>. */
-static void
-circuit_free_cpath(crypt_path_t *cpath)
+/** Deallocate the linked list circ-><b>cpath</b>, and remove the cpath from
+ * <b>circ</b>. */
+void
+circuit_clear_cpath(origin_circuit_t *circ)
 {
-  crypt_path_t *victim, *head=cpath;
+  crypt_path_t *victim, *head, *cpath;
+
+  head = cpath = circ->cpath;
 
   if (!cpath)
     return;
 
-  /* it's a doubly linked list, so we have to notice when we've
+  /* it's a circular list, so we have to notice when we've
    * gone through it once. */
   while (cpath->next && cpath->next != head) {
     victim = cpath;
@@ -805,6 +807,8 @@ circuit_free_cpath(crypt_path_t *cpath)
   }
 
   circuit_free_cpath_node(cpath);
+
+  circ->cpath = NULL;
 }
 
 /** Release all storage held by circuits. */

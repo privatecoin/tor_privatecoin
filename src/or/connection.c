@@ -540,6 +540,22 @@ connection_free_(connection_t *conn)
     or_handshake_state_free(or_conn->handshake_state);
     or_conn->handshake_state = NULL;
     tor_free(or_conn->nickname);
+    if (or_conn->chan) {
+      /* Owww, this shouldn't happen, but... */
+      log_info(LD_CHANNEL,
+               "Freeing orconn at %p, saw channel %p with ID "
+               U64_FORMAT " left un-NULLed",
+               or_conn, TLS_CHAN_TO_BASE(or_conn->chan),
+               U64_PRINTF_ARG(
+                 TLS_CHAN_TO_BASE(or_conn->chan)->global_identifier));
+      if (!(TLS_CHAN_TO_BASE(or_conn->chan)->state == CHANNEL_STATE_CLOSED ||
+            TLS_CHAN_TO_BASE(or_conn->chan)->state == CHANNEL_STATE_ERROR)) {
+        channel_close_for_error(TLS_CHAN_TO_BASE(or_conn->chan));
+      }
+
+      or_conn->chan->conn = NULL;
+      or_conn->chan = NULL;
+    }
   }
   if (conn->type == CONN_TYPE_AP) {
     entry_connection_t *entry_conn = TO_ENTRY_CONN(conn);
@@ -1034,6 +1050,22 @@ connection_listener_new(const struct sockaddr *listensockaddr,
     }
 
     make_socket_reuseable(s);
+
+#if defined USE_TRANSPARENT && defined(IP_TRANSPARENT)
+    if (options->TransProxyType_parsed == TPT_TPROXY &&
+        type == CONN_TYPE_AP_TRANS_LISTENER) {
+      int one = 1;
+      if (setsockopt(s, SOL_IP, IP_TRANSPARENT, &one, sizeof(one)) < 0) {
+        const char *extra = "";
+        int e = tor_socket_errno(s);
+        if (e == EPERM)
+          extra = "TransTPROXY requires root privileges or similar"
+            " capabilities.";
+        log_warn(LD_NET, "Error setting IP_TRANSPARENT flag: %s.%s",
+                 tor_socket_strerror(e), extra);
+      }
+    }
+#endif
 
 #ifdef IPV6_V6ONLY
     if (listensockaddr->sa_family == AF_INET6) {
