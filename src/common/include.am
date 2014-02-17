@@ -125,5 +125,5 @@ src/common/common_sha1.i: $(libor_SOURCES) $(libor_crypto_la_SOURCES) $(COMMONHE
 	  touch $@; \
 	fi
 
-src/common/util_codedigest.o: src/common/common_sha1.i
+BUILT_SOURCES += src/common/common_sha1.i
 

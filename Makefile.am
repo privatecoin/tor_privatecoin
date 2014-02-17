@@ -9,6 +9,7 @@ AUTOMAKE_OPTIONS = foreign 1.9 subdir-objects
 
 ACLOCAL_AMFLAGS = -I m4
 
+BUILT_SOURCES=
 noinst_LTLIBRARIES=
 EXTRA_DIST=
 noinst_HEADERS=
