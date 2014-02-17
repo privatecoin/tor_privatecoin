@@ -75,7 +75,7 @@ def socks5ResolvePTRRequest(hostname):
 
 
 def parseHostAndPort(h):
-    host, port = "localhost", 9050
+    host, port = "localhost", 9060
     if ":" in h:
         i = h.index(":")
         host = h[:i]

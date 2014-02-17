@@ -404,8 +404,8 @@ main(int argc, char **argv)
       log_debug(LD_CONFIG, "Using port %d", (int)port_option);
       socksport = port_option;
     } else {
-      log_debug(LD_CONFIG, "defaulting to port 9050");
-      socksport = 9050; /* 9050 */
+      log_debug(LD_CONFIG, "defaulting to port 9060");
+      socksport = 9060; /* 9060 */
     }
   } else if (n_args == 2) {
     if (addr_port_lookup(LOG_WARN, arg[1], NULL, &sockshost, &socksport)<0) {
@@ -418,8 +418,8 @@ main(int argc, char **argv)
     } else if (port_option) {
       socksport = port_option;
     } else if (!socksport) {
-      log_debug(LD_CONFIG, "defaulting to port 9050");
-      socksport = 9050;
+      log_debug(LD_CONFIG, "defaulting to port 9060");
+      socksport = 9060;
     }
   } else {
     usage();
