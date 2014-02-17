@@ -213,7 +213,7 @@ void
 nodelist_set_consensus(networkstatus_t *ns)
 {
   const or_options_t *options = get_options();
-  int authdir = authdir_mode_v3(options);
+  int authdir = authdir_mode_v2(options) || authdir_mode_v3(options);
   int client = !server_mode(options);
 
   init_nodelist();
@@ -646,7 +646,7 @@ node_get_purpose(const node_t *node)
 
 /** Compute the verbose ("extended") nickname of <b>node</b> and store it
  * into the MAX_VERBOSE_NICKNAME_LEN+1 character buffer at
- * <b>verbose_name_out</b> */
+ * <b>verbose_nickname_out</b> */
 void
 node_get_verbose_nickname(const node_t *node,
                           char *verbose_name_out)
@@ -660,25 +660,6 @@ node_get_verbose_nickname(const node_t *node,
     return;
   verbose_name_out[1+HEX_DIGEST_LEN] = is_named ? '=' : '~';
   strlcpy(verbose_name_out+1+HEX_DIGEST_LEN+1, nickname, MAX_NICKNAME_LEN+1);
-}
-
-/** Compute the verbose ("extended") nickname of node with
- * given <b>id_digest</b> and store it into the MAX_VERBOSE_NICKNAME_LEN+1
- * character buffer at <b>verbose_name_out</b>
- *
- * If node_get_by_id() returns NULL, base 16 encoding of
- * <b>id_digest</b> is returned instead. */
-void
-node_get_verbose_nickname_by_id(const char *id_digest,
-                                char *verbose_name_out)
-{
-  const node_t *node = node_get_by_id(id_digest);
-  if (!node) {
-    verbose_name_out[0] = '$';
-    base16_encode(verbose_name_out+1, HEX_DIGEST_LEN+1, id_digest, DIGEST_LEN);
-  } else {
-    node_get_verbose_nickname(node, verbose_name_out);
-  }
 }
 
 /** Return true iff it seems that <b>node</b> allows circuits to exit
@@ -1350,10 +1331,9 @@ compute_frac_paths_available(const networkstatus_t *consensus,
   smartlist_t *mid    = smartlist_new();
   smartlist_t *exits  = smartlist_new();
   smartlist_t *myexits= smartlist_new();
-  smartlist_t *myexits_unflagged = smartlist_new();
-  double f_guard, f_mid, f_exit, f_myexit, f_myexit_unflagged;
+  double f_guard, f_mid, f_exit, f_myexit;
   int np, nu; /* Ignored */
-  const int authdir = authdir_mode_v3(options);
+  const int authdir = authdir_mode_v2(options) || authdir_mode_v3(options);
 
   count_usable_descriptors(num_present_out, num_usable_out,
                            mid, consensus, options, now, NULL, 0);
@@ -1372,42 +1352,20 @@ compute_frac_paths_available(const networkstatus_t *consensus,
     });
   }
 
-  /* All nodes with exit flag */
   count_usable_descriptors(&np, &nu, exits, consensus, options, now,
                            NULL, 1);
-  /* All nodes with exit flag in ExitNodes option */
   count_usable_descriptors(&np, &nu, myexits, consensus, options, now,
                            options->ExitNodes, 1);
-  /* Now compute the nodes in the ExitNodes option where which we don't know
-   * what their exit policy is, or we know it permits something. */
-  count_usable_descriptors(&np, &nu, myexits_unflagged,
-                           consensus, options, now,
-                           options->ExitNodes, 0);
-  SMARTLIST_FOREACH_BEGIN(myexits_unflagged, const node_t *, node) {
-    if (node_has_descriptor(node) && node_exit_policy_rejects_all(node))
-      SMARTLIST_DEL_CURRENT(myexits_unflagged, node);
-  } SMARTLIST_FOREACH_END(node);
 
   f_guard = frac_nodes_with_descriptors(guards, WEIGHT_FOR_GUARD);
   f_mid   = frac_nodes_with_descriptors(mid,    WEIGHT_FOR_MID);
   f_exit  = frac_nodes_with_descriptors(exits,  WEIGHT_FOR_EXIT);
   f_myexit= frac_nodes_with_descriptors(myexits,WEIGHT_FOR_EXIT);
-  f_myexit_unflagged=
-            frac_nodes_with_descriptors(myexits_unflagged,WEIGHT_FOR_EXIT);
-
-  /* If our ExitNodes list has eliminated every possible Exit node, and there
-   * were some possible Exit nodes, then instead consider nodes that permit
-   * exiting to some ports. */
-  if (smartlist_len(myexits) == 0 &&
-      smartlist_len(myexits_unflagged)) {
-    f_myexit = f_myexit_unflagged;
-  }
 
   smartlist_free(guards);
   smartlist_free(mid);
   smartlist_free(exits);
   smartlist_free(myexits);
-  smartlist_free(myexits_unflagged);
 
   /* This is a tricky point here: we don't want to make it easy for a
    * directory to trickle exits to us until it learns which exits we have

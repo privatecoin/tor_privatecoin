@@ -47,7 +47,6 @@
 #include "transports.h"
 #include "ext_orport.h"
 #include "torgzip.h"
-#include "privatecoin.h"
 #ifdef _WIN32
 #include <shlobj.h>
 #endif
@@ -216,7 +215,7 @@ static config_var_t option_vars_[] = {
   V(DisableAllSwap,              BOOL,     "0"),
   V(DisableDebuggerAttachment,   BOOL,     "1"),
   V(DisableIOCP,                 BOOL,     "1"),
-  OBSOLETE("DisableV2DirectoryInfo_"),
+  V(DisableV2DirectoryInfo_,     BOOL,     "0"),
   V(DynamicDHGroups,             BOOL,     "0"),
   VPORT(DNSPort,                     LINELIST, NULL),
   V(DNSListenAddress,            LINELIST, NULL),
@@ -249,16 +248,16 @@ static config_var_t option_vars_[] = {
   V(FetchServerDescriptors,      BOOL,     "1"),
   V(FetchHidServDescriptors,     BOOL,     "1"),
   V(FetchUselessDescriptors,     BOOL,     "0"),
-  OBSOLETE("FetchV2Networkstatus"),
+  V(FetchV2Networkstatus,        BOOL,     "0"),
   V(GeoIPExcludeUnknown,         AUTOBOOL, "auto"),
 #ifdef _WIN32
   V(GeoIPFile,                   FILENAME, "<default>"),
   V(GeoIPv6File,                 FILENAME, "<default>"),
 #else
   V(GeoIPFile,                   FILENAME,
-    "/usr/share" PATH_SEPARATOR "tor" PATH_SEPARATOR "geoip"),
+    SHARE_DATADIR PATH_SEPARATOR "tor" PATH_SEPARATOR "geoip"),
   V(GeoIPv6File,                 FILENAME,
-    "/usr/share" PATH_SEPARATOR "tor" PATH_SEPARATOR "geoip6"),
+    SHARE_DATADIR PATH_SEPARATOR "tor" PATH_SEPARATOR "geoip6"),
 #endif
   OBSOLETE("GiveGuardFlagTo_CVE_2011_2768_VulnerableRelays"),
   OBSOLETE("Group"),
@@ -409,7 +408,6 @@ static config_var_t option_vars_[] = {
   OBSOLETE("TrafficShaping"),
   V(TransListenAddress,          LINELIST, NULL),
   VPORT(TransPort,                   LINELIST, NULL),
-  V(TransProxyType,              STRING,   "default"),
   V(TunnelDirConns,              BOOL,     "1"),
   V(UpdateBridgesFromAuthority,  BOOL,     "0"),
   V(UseBridges,                  BOOL,     "0"),
@@ -420,7 +418,7 @@ static config_var_t option_vars_[] = {
   V(User,                        STRING,   NULL),
   V(UserspaceIOCPBuffers,        BOOL,     "0"),
   VAR("V1AuthoritativeDirectory",BOOL, V1AuthoritativeDir,   "0"),
-  OBSOLETE("V2AuthoritativeDirectory"),
+  VAR("V2AuthoritativeDirectory",BOOL, V2AuthoritativeDir,   "0"),
   VAR("V3AuthoritativeDirectory",BOOL, V3AuthoritativeDir,   "0"),
   V(TestingV3AuthInitialVotingInterval, INTERVAL, "30 minutes"),
   V(TestingV3AuthInitialVoteDelay, INTERVAL, "5 minutes"),
@@ -842,30 +840,30 @@ add_default_trusted_dir_authorities(dirinfo_type_t type)
 {
   int i;
   const char *authorities[] = {
-    "moria1 orport=9101 "
+    "moria1 orport=9101 no-v2 "
       "v3ident=D586D18309DED4CD6D57C18FDB97EFA96D330566 "
       "128.31.0.39:9131 9695 DFC3 5FFE B861 329B 9F1A B04C 4639 7020 CE31",
     "tor26 v1 orport=443 v3ident=14C131DFC5C6F93646BE72FA1401C02A8DF2E8B4 "
       "86.59.21.38:80 847B 1F85 0344 D787 6491 A548 92F9 0493 4E4E B85D",
     "dizum orport=443 v3ident=E8A9C45EDE6D711294FADF8E7951F4DE6CA56B58 "
       "194.109.206.212:80 7EA6 EAD6 FD83 083C 538F 4403 8BBF A077 587D D755",
-    "Tonga orport=443 bridge 82.94.251.203:80 "
+    "Tonga orport=443 bridge no-v2 82.94.251.203:80 "
       "4A0C CD2D DC79 9508 3D73 F5D6 6710 0C8A 5831 F16D",
-    "turtles orport=9090 "
+    "turtles orport=9090 no-v2 "
       "v3ident=27B6B5996C426270A5C95488AA5BCEB6BCC86956 "
       "76.73.17.194:9030 F397 038A DC51 3361 35E7 B80B D99C A384 4360 292B",
-    "gabelmoo orport=443 "
+    "gabelmoo orport=443 no-v2 "
       "v3ident=ED03BB616EB2F60BEC80151114BB25CEF515B226 "
       "212.112.245.170:80 F204 4413 DAC2 E02E 3D6B CF47 35A1 9BCA 1DE9 7281",
-    "dannenberg orport=443 "
+    "dannenberg orport=443 no-v2 "
       "v3ident=585769C78764D58426B8B52B6651A5A71137189A "
       "193.23.244.244:80 7BE6 83E6 5D48 1413 21C5 ED92 F075 C553 64AC 7123",
-    "urras orport=80 v3ident=80550987E1D626E3EBA5E5E75A458DE0626D088C "
+    "urras orport=80 no-v2 v3ident=80550987E1D626E3EBA5E5E75A458DE0626D088C "
       "208.83.223.34:443 0AD3 FA88 4D18 F89E EA2D 89C0 1937 9E0E 7FD9 4417",
-    "maatuska orport=80 "
+    "maatuska orport=80 no-v2 "
       "v3ident=49015F787433103580E3B66A1707A00E60F2D15B "
       "171.25.193.9:443 BD6A 8292 55CB 08E6 6FBE 7D37 4836 3586 E46B 3810",
-    "Faravahar orport=443 "
+    "Faravahar orport=443 no-v2 "
       "v3ident=EFCBE720AB3A82B99F9E953CD5BF50F7EEFC7B97 "
       "154.35.32.5:80 CF6D 0AAF B385 BE71 B8E1 11FC 5CFF 4B47 9237 33BC",
     NULL
@@ -983,7 +981,7 @@ consider_adding_dir_servers(const or_options_t *options,
     if (!options->AlternateBridgeAuthority)
       type |= BRIDGE_DIRINFO;
     if (!options->AlternateDirAuthority)
-      type |= V1_DIRINFO | V3_DIRINFO | EXTRAINFO_DIRINFO |
+      type |= V1_DIRINFO | V2_DIRINFO | V3_DIRINFO | EXTRAINFO_DIRINFO |
         MICRODESC_DIRINFO;
     if (!options->AlternateHSAuthority)
       type |= HIDSERV_DIRINFO;
@@ -1135,6 +1133,20 @@ options_act_reversible(const or_options_t *old_options, char **msg)
               options->DataDirectory);
     goto done;
     /* No need to roll back, since you can't change the value. */
+  }
+
+  if (directory_caches_v2_dir_info(options)) {
+    char *fn = NULL;
+    tor_asprintf(&fn, "%s"PATH_SEPARATOR"cached-status",
+                 options->DataDirectory);
+    if (check_private_dir(fn, running_tor ? CPD_CREATE : CPD_CHECK,
+                          options->User) < 0) {
+      tor_asprintf(msg,
+                "Couldn't access/create private data directory \"%s\"", fn);
+      tor_free(fn);
+      goto done;
+    }
+    tor_free(fn);
   }
 
   /* Bail out at this point if we're not going to be a client or server:
@@ -2346,7 +2358,7 @@ ensure_bandwidth_cap(uint64_t *value, const char *desc, char **msg)
 
 /** Parse an authority type from <b>options</b>-\>PublishServerDescriptor
  * and write it to <b>options</b>-\>PublishServerDescriptor_. Treat "1"
- * as "v3" unless BridgeRelay is 1, in which case treat it as "bridge".
+ * as "v2,v3" unless BridgeRelay is 1, in which case treat it as "bridge".
  * Treat "0" as "".
  * Return 0 on success or -1 if not a recognized authority type (in which
  * case the value of PublishServerDescriptor_ is undefined). */
@@ -2365,9 +2377,9 @@ compute_publishserverdescriptor(or_options_t *options)
       if (options->BridgeRelay)
         *auth |= BRIDGE_DIRINFO;
       else
-        *auth |= V3_DIRINFO;
+        *auth |= V2_DIRINFO | V3_DIRINFO;
     else if (!strcasecmp(string, "v2"))
-      /* obsolete */;
+      *auth |= V2_DIRINFO;
     else if (!strcasecmp(string, "v3"))
       *auth |= V3_DIRINFO;
     else if (!strcasecmp(string, "bridge"))
@@ -2518,36 +2530,19 @@ options_validate(or_options_t *old_options, or_options_t *options,
         "undefined, and there aren't any hidden services configured.  "
         "Tor will still run, but probably won't do anything.");
 
-  options->TransProxyType_parsed = TPT_DEFAULT;
-#ifdef USE_TRANSPARENT
-  if (options->TransProxyType) {
-    if (!strcasecmp(options->TransProxyType, "default")) {
-      options->TransProxyType_parsed = TPT_DEFAULT;
-    } else if (!strcasecmp(options->TransProxyType, "tproxy")) {
-#ifndef __linux__
-      REJECT("TPROXY is a Linux-specific feature.");
-#else
-      options->TransProxyType_parsed = TPT_TPROXY;
-#endif
-    } else {
-      REJECT("Unrecognized value for TransProxyType");
-    }
-
-    if (strcasecmp(options->TransProxyType, "default") &&
-        !options->TransPort_set) {
-      REJECT("Cannot use TransProxyType without any valid TransPort or "
-             "TransListenAddress.");
-    }
-  }
-#else
-  if (options->TransPort_set)
-    REJECT("TransPort and TransListenAddress are disabled "
-           "in this build.");
+#ifndef USE_TRANSPARENT
+  /* XXXX024 I think we can remove this TransListenAddress */
+  if (options->TransPort_set || options->TransListenAddress)
+    REJECT("TransPort and TransListenAddress are disabled in this build.");
 #endif
 
   if (options->TokenBucketRefillInterval <= 0
       || options->TokenBucketRefillInterval > 1000) {
     REJECT("TokenBucketRefillInterval must be between 1 and 1000 inclusive.");
+  }
+
+  if (options->DisableV2DirectoryInfo_ && ! authdir_mode(options)) {
+    REJECT("DisableV2DirectoryInfo_ set, but we aren't an authority.");
   }
 
   if (options->ExcludeExitNodes || options->ExcludeNodes) {
@@ -2607,10 +2602,10 @@ options_validate(or_options_t *old_options, or_options_t *options,
       options->DownloadExtraInfo = 1;
     }
     if (!(options->BridgeAuthoritativeDir || options->HSAuthoritativeDir ||
-          options->V1AuthoritativeDir ||
+          options->V1AuthoritativeDir || options->V2AuthoritativeDir ||
           options->V3AuthoritativeDir))
       REJECT("AuthoritativeDir is set, but none of "
-             "(Bridge/HS/V1/V3)AuthoritativeDir is set.");
+             "(Bridge/HS/V1/V2/V3)AuthoritativeDir is set.");
     /* If we have a v3bandwidthsfile and it's broken, complain on startup */
     if (options->V3BandwidthsFile && !old_options) {
       dirserv_read_measured_bandwidths(options->V3BandwidthsFile, NULL);
@@ -2820,7 +2815,7 @@ options_validate(or_options_t *old_options, or_options_t *options,
   if ((options->BridgeRelay
         || options->PublishServerDescriptor_ & BRIDGE_DIRINFO)
       && (options->PublishServerDescriptor_
-          & (V1_DIRINFO|V3_DIRINFO))) {
+          & (V1_DIRINFO|V2_DIRINFO|V3_DIRINFO))) {
     REJECT("Bridges are not supposed to publish router descriptors to the "
            "directory authorities. Please correct your "
            "PublishServerDescriptor line.");
@@ -5031,8 +5026,8 @@ parse_dir_authority_line(const char *line, dirinfo_type_t required_type,
   uint16_t dir_port = 0, or_port = 0;
   char digest[DIGEST_LEN];
   char v3_digest[DIGEST_LEN];
-  dirinfo_type_t type = 0;
-  int is_not_hidserv_authority = 0;
+  dirinfo_type_t type = V2_DIRINFO;
+  int is_not_hidserv_authority = 0, is_not_v2_authority = 0;
   double weight = 1.0;
 
   items = smartlist_new();
@@ -5061,8 +5056,7 @@ parse_dir_authority_line(const char *line, dirinfo_type_t required_type,
     } else if (!strcasecmp(flag, "bridge")) {
       type |= BRIDGE_DIRINFO;
     } else if (!strcasecmp(flag, "no-v2")) {
-      /* obsolete, but may still be contained in DirAuthority lines generated
-         by various tools */;
+      is_not_v2_authority = 1;
     } else if (!strcasecmpstart(flag, "orport=")) {
       int ok;
       char *portstring = flag + strlen("orport=");
@@ -5096,6 +5090,8 @@ parse_dir_authority_line(const char *line, dirinfo_type_t required_type,
   }
   if (is_not_hidserv_authority)
     type &= ~HIDSERV_DIRINFO;
+  if (is_not_v2_authority)
+    type &= ~V2_DIRINFO;
 
   if (smartlist_len(items) < 2) {
     log_warn(LD_CONFIG, "Too few arguments to DirAuthority line.");
@@ -6160,18 +6156,41 @@ get_first_advertised_port_by_type_af(int listener_type, int address_family)
 static int
 normalize_data_directory(or_options_t *options)
 {
+#ifdef _WIN32
   char *p;
   if (options->DataDirectory)
     return 0; /* all set */
-#ifdef _WIN32
   p = tor_malloc(MAX_PATH);
-  strlcpy(p,privatecoin_tor_data_directory(),MAX_PATH);
-#else
-  p = tor_malloc(PATH_MAX);
-  strlcpy(p,privatecoin_tor_data_directory(),PATH_MAX);
-#endif
+  strlcpy(p,get_windows_conf_root(),MAX_PATH);
   options->DataDirectory = p;
   return 0;
+#else
+  const char *d = options->DataDirectory;
+  if (!d)
+    d = "~/.tor";
+
+ if (strncmp(d,"~/",2) == 0) {
+   char *fn = expand_filename(d);
+   if (!fn) {
+     log_warn(LD_CONFIG,"Failed to expand filename \"%s\".", d);
+     return -1;
+   }
+   if (!options->DataDirectory && !strcmp(fn,"/.tor")) {
+     /* If our homedir is /, we probably don't want to use it. */
+     /* Default to LOCALSTATEDIR/tor which is probably closer to what we
+      * want. */
+     log_warn(LD_CONFIG,
+              "Default DataDirectory is \"~/.tor\".  This expands to "
+              "\"%s\", which is probably not what you want.  Using "
+              "\"%s"PATH_SEPARATOR"tor\" instead", fn, LOCALSTATEDIR);
+     tor_free(fn);
+     fn = tor_strdup(LOCALSTATEDIR PATH_SEPARATOR "tor");
+   }
+   tor_free(options->DataDirectory);
+   options->DataDirectory = fn;
+ }
+ return 0;
+#endif
 }
 
 /** Check and normalize the value of options->DataDirectory; return 0 if it

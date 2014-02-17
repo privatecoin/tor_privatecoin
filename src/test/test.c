@@ -1625,8 +1625,6 @@ extern struct testcase_t extorport_tests[];
 extern struct testcase_t controller_event_tests[];
 extern struct testcase_t logging_tests[];
 extern struct testcase_t backtrace_tests[];
-extern struct testcase_t hs_tests[];
-extern struct testcase_t nodelist_tests[];
 
 static struct testgroup_t testgroups[] = {
   { "", test_array },
@@ -1650,8 +1648,6 @@ static struct testgroup_t testgroups[] = {
   { "options/", options_tests },
   { "extorport/", extorport_tests },
   { "control/", controller_event_tests },
-  { "hs/", hs_tests },
-  { "nodelist/", nodelist_tests },
   END_OF_GROUPS
 };
 
@@ -1664,7 +1660,6 @@ main(int c, const char **v)
   char *errmsg = NULL;
   int i, i_out;
   int loglevel = LOG_ERR;
-  int accel_crypto = 0;
 
 #ifdef USE_DMALLOC
   {
@@ -1687,8 +1682,6 @@ main(int c, const char **v)
       loglevel = LOG_INFO;
     } else if (!strcmp(v[i], "--debug")) {
       loglevel = LOG_DEBUG;
-    } else if (!strcmp(v[i], "--accel")) {
-      accel_crypto = 1;
     } else {
       v[i_out++] = v[i];
     }
@@ -1703,7 +1696,7 @@ main(int c, const char **v)
   }
 
   options->command = CMD_RUN_UNITTESTS;
-  if (crypto_global_init(accel_crypto, NULL, NULL)) {
+  if (crypto_global_init(0, NULL, NULL)) {
     printf("Can't initialize crypto subsystem; exiting.\n");
     return 1;
   }

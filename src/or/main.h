@@ -12,10 +12,6 @@
 #ifndef TOR_MAIN_H
 #define TOR_MAIN_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern int can_complete_circuit;
 
 int connection_add_impl(connection_t *conn, int is_connecting);
@@ -76,10 +72,6 @@ int tor_init(int argc, char **argv);
 #ifdef MAIN_PRIVATE
 STATIC void init_connection_lists(void);
 STATIC void close_closeable_connections(void);
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif

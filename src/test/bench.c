@@ -438,10 +438,6 @@ bench_ecdh_impl(int nid, const char *name)
     ssize_t slen_a, slen_b;
     EC_KEY *dh_a = EC_KEY_new_by_curve_name(nid);
     EC_KEY *dh_b = EC_KEY_new_by_curve_name(nid);
-    if (!dh_a || !dh_b) {
-      puts("Skipping.  (No implementation?)");
-      return;
-    }
 
     EC_KEY_generate_key(dh_a);
     EC_KEY_generate_key(dh_b);
